@@ -1,6 +1,6 @@
 # Airflow ML Pipeline
 
-![CI](https://github.com/yigit-8/airflow-ml-pipeline/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/yigitliman/airflow-ml-pipeline/actions/workflows/ci.yml/badge.svg)
 
 An end-to-end machine learning pipeline orchestrated with Apache Airflow. Runs on a daily schedule and covers data fetching, preprocessing, model training, and quality-gated evaluation. Experiment tracking via MLflow.
 
