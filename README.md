@@ -45,9 +45,9 @@ One full pipeline run on the seeded synthetic dataset (2,000 rows, 400 held out,
 | F1 | 0.206 |
 | Precision / Recall | 0.423 / 0.136 |
 
-**Why the quality gate is on ROC-AUC and not accuracy.** Only 20% of the held-out customers actually churn, so a model that always answers "no churn" scores 0.798 accuracy — *better* than this model's 0.788. Accuracy on imbalanced churn data mostly measures the class balance, which is why gating on it would let a useless model through. ROC-AUC is threshold-free and reads 0.755 here, so the model does rank churners above non-churners; the low recall says the default 0.5 cutoff is simply the wrong operating point for a 20% positive rate, not that the signal is missing.
+**Why the quality gate is on ROC-AUC and not accuracy.** Only 20% of the held-out customers actually churn, so a model that always answers "no churn" scores 0.798 accuracy, *better* than this model's 0.788. Accuracy on imbalanced churn data mostly measures the class balance, which is why gating on it would let a useless model through. ROC-AUC is threshold-free and reads 0.755 here, so the model does rank churners above non-churners; the low recall says the default 0.5 cutoff is simply the wrong operating point for a 20% positive rate, not that the signal is missing.
 
-The data is generated from a known churn-probability function with binomial noise, so these numbers are what a well-behaved model on genuinely noisy data looks like — not a benchmark against real customer data.
+The data is generated from a known churn-probability function with binomial noise, so these numbers are what a well-behaved model on genuinely noisy data looks like, not a benchmark against real customer data.
 
 ## Drift Detection
 
