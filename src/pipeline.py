@@ -294,6 +294,7 @@ def check_drift(
 
 
 def run_pipeline(
+    *,
     n_samples: int = 2000,
     min_roc_auc: float = DEFAULT_MIN_ROC_AUC,
     n_estimators: int = 100,
