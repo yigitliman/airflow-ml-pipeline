@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -28,4 +32,46 @@ jobs:
         run: ruff check src dags tests
 
       - name: Run pipeline tests
-        run: pytest tests/ -v --tb=short
+        run: pytest tests/ -v --tb=short --cov=src --cov-report=term-missing
+
+  dag-import:
+    # The pipeline tests never touch Airflow, so a DAG that fails to import
+    # used to be discovered only on deploy. Load the DagBag for real instead.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Airflow and pipeline dependencies
+        env:
+          AIRFLOW_VERSION: "2.9.2"
+          PYTHON_VERSION: "3.11"
+        run: |
+          pip install "apache-airflow==${AIRFLOW_VERSION}" \
+            --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
+          pip install -r requirements.txt
+
+      - name: Check DAGs import cleanly
+        env:
+          AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+          AIRFLOW__CORE__DAGS_FOLDER: dags
+        run: |
+          python - <<'PY'
+          import sys
+          from airflow.models import DagBag
+
+          dagbag = DagBag(dag_folder="dags", include_examples=False)
+          for filename, error in dagbag.import_errors.items():
+              print(f"IMPORT ERROR in {filename}:\n{error}", file=sys.stderr)
+          assert not dagbag.import_errors, f"{len(dagbag.import_errors)} DAG import error(s)"
+
+          expected = {"churn_prediction_pipeline", "drift_monitoring"}
+          missing = expected - set(dagbag.dag_ids)
+          assert not missing, f"missing DAGs: {sorted(missing)}"
+          print(f"OK: {sorted(dagbag.dag_ids)}")
+          PY
